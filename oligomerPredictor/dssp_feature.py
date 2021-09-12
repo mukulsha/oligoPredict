@@ -2,15 +2,14 @@ import warnings
 import pandas as pd
 from Bio.PDB import PDBParser
 from Bio.PDB.DSSP import DSSP
+from oligo_utils import *
 
 dssp_dict = dict()
 dssp_fails = list()
 p = PDBParser()
 
-def get_dssp(filepath):
-    id = filepath[:filepath.rfind('.')]
-    if '/' in id:
-        id = filepath[filepath.rfind('/')+1:]
+def dssp_main(filepath):
+    id = get_id(filepath)
     try:
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")
@@ -39,8 +38,8 @@ def get_dssp(filepath):
             df6.index = df6.index.map('aa__std{0[0]}_{0[1]}'.format)
             df6 = df6.to_frame().T
             ps = list(pd.concat([df2,df1,df3, df4, df5, df6], 1).T.to_dict().values())[0]   
-            cols = pd.read_csv('oligomerPredictor/data/dssp_cols.csv').columns
+            cols = pd.read_csv(f'{os.getcwd()}/data/dssp_cols.csv').columns
             return pd.DataFrame({k:ps.get(k, 0) for k in cols}, index = [id])
 
     except Exception as e:
-        print(f'DSSP feature extractoin for {filepath} failed with error {e}.')
+        print(f'DSSP feature extraction for {filepath} failed with error {e}.')
